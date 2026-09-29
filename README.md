@@ -1,6 +1,6 @@
 # yamanbosna.li
 
-Personal site of Yaman Bosnali, built around a loss-landscape theme.
+Personal site of Yaman Bosnali.
 
 - **Stack:** Astro (static output), TypeScript, D3 (build-time contours), self-hosted fonts
 - **Hosting:** Cloudflare Pages, deployed on every push to `main`
