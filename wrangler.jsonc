@@ -1,0 +1,12 @@
+// Cloudflare Workers static-assets deploy for the Astro build output.
+// Workers Builds runs `npm run build`, then `npx wrangler deploy`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "yamanbosna-li",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

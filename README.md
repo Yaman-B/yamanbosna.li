@@ -3,7 +3,7 @@
 Personal site of Yaman Bosnali.
 
 - **Stack:** Astro (static output), TypeScript, D3 (build-time contours), self-hosted fonts
-- **Hosting:** Cloudflare Pages, deployed on every push to `main`
+- **Hosting:** Cloudflare Workers (static assets), deployed on every push to `main`
 
 ## Commands
 
@@ -25,9 +25,9 @@ Personal site of Yaman Bosnali.
 | `src/styles/tokens.css` | Colors, fonts, and both themes |
 | `public/resume.pdf` | The public resume. Replace this file to update it |
 
-## Cloudflare Pages settings
+## Cloudflare Workers settings
 
-- Framework preset: Astro
 - Build command: `npm run build`
-- Output directory: `dist`
+- Deploy command: `npx wrangler deploy` (reads `wrangler.jsonc`, which serves `dist/`)
 - Node version: 22 (from `.node-version`)
+- `public/_headers` sets security headers; unknown paths serve the custom 404 page
