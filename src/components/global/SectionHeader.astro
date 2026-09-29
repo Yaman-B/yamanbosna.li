@@ -1,0 +1,23 @@
+---
+interface Props { n: string; title: string; loss: string; lede?: string; id?: string }
+const { n, title, loss, lede, id } = Astro.props;
+---
+<div class="sh">
+  <p class="eyebrow mono"><span>{n}</span><span class="rule" aria-hidden="true"></span><span>loss {loss}</span></p>
+  <h2 id={id}>{title}</h2>
+  {lede && <p class="lede">{lede}</p>}
+</div>
+
+<style>
+  .sh { margin-bottom: 40px; max-width: 720px; }
+  @media (min-width: 768px) { .sh { margin-bottom: 56px; } }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .rule { width: 40px; height: 1px; background: var(--muted); opacity: 0.6; }
+  .lede { margin-top: 14px; color: var(--muted); font-size: 1.05rem; }
+</style>

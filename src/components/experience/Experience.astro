@@ -1,0 +1,66 @@
+---
+// Phase 1: static checkpoint timeline. The self-drawing training curve arrives in Phase 2.
+import SectionHeader from '../global/SectionHeader.astro';
+import { sections } from '../../data/site';
+import { roles } from '../../data/roles';
+const s = sections.find((x) => x.id === 'experience')!;
+---
+<section class="section" id="experience" aria-labelledby="experience-title">
+  <div class="container">
+    <SectionHeader n={s.n} title={s.title} loss={s.loss} id="experience-title" />
+    <ol class="timeline">
+      {roles.map((r, i) => (
+        <li class:list={['cp', { final: i === roles.length - 1 }]}>
+          <span class="node" aria-hidden="true"></span>
+          <p class="log mono">
+            <span class="epoch">{r.epoch}</span>
+            <span aria-hidden="true">|</span>
+            <span>{r.period}</span>
+            <span aria-hidden="true">|</span>
+            <span>{r.location}</span>
+          </p>
+          <h3><span class="org">{r.organization}</span><span class="role">{r.title}</span></h3>
+          <ul class="hl">
+            {r.highlights.map((h) => <li>{h}</li>)}
+          </ul>
+          {r.tools.length > 0 && (
+            <ul class="tags" aria-label="Tools">
+              {r.tools.map((t) => <li>{t}</li>)}
+            </ul>
+          )}
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .timeline { list-style: none; margin: 0; padding: 0; position: relative; max-width: 880px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px; top: 10px; bottom: 10px;
+    width: 1px;
+    background: linear-gradient(var(--border), var(--muted) 20%, var(--muted) 80%, var(--success));
+    opacity: 0.7;
+  }
+  .cp { position: relative; padding-left: 40px; padding-bottom: 44px; }
+  .cp:last-child { padding-bottom: 0; }
+  .node {
+    position: absolute;
+    left: 0; top: 4px;
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+  }
+  .final .node { border-color: var(--success); background: var(--success); }
+  .log { display: flex; flex-wrap: wrap; gap: 4px 10px; color: var(--muted); }
+  .epoch { color: var(--text); }
+  h3 { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .org { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: -0.015em; }
+  .role { color: var(--muted); font-weight: 500; font-size: 1rem; }
+  .hl { margin: 14px 0 0; padding-left: 1.1em; color: var(--text); display: grid; gap: 8px; max-width: 70ch; }
+  .hl li::marker { color: var(--muted); }
+  .tags { margin-top: 16px; }
+</style>

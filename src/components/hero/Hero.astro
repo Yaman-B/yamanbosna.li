@@ -1,0 +1,70 @@
+---
+import { site } from '../../data/site';
+import { DEFAULT_START, loss } from '../../lib/surface';
+import HeroPlot from './HeroPlot.astro';
+---
+<section class="hero" id="top" aria-labelledby="hero-name">
+  <div class="container grid">
+    <div class="copy">
+      <p class="eyebrow mono"><span>00</span><span class="rule" aria-hidden="true"></span><span>loss {loss(...DEFAULT_START).toFixed(2)}</span></p>
+      <h1 id="hero-name">{site.name}</h1>
+      <p class="headline">{site.headline}</p>
+      <p class="status">
+        <span class="dot" aria-hidden="true"></span>
+        <span>{site.status}</span>
+        <span class="where mono">{site.locations.join(' · ')}</span>
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#projects">View projects</a>
+        <a class="btn" href={site.resume} target="_blank" rel="noopener">
+          Resume<span class="visually-hidden"> (PDF, opens in a new tab)</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </a>
+      </div>
+    </div>
+    <HeroPlot />
+  </div>
+</section>
+
+<style>
+  .hero { padding-top: 104px; padding-bottom: 72px; }
+  @media (min-width: 1024px) {
+    .hero { min-height: min(100svh, 920px); display: flex; align-items: center; padding-top: 96px; padding-bottom: 64px; }
+  }
+  .grid { display: grid; gap: 48px; align-items: center; }
+  @media (min-width: 1024px) {
+    .grid { grid-template-columns: 7fr 5fr; gap: 56px; }
+  }
+  .eyebrow { display: flex; align-items: center; gap: 12px; color: var(--muted); margin-bottom: 20px; }
+  .rule { width: 40px; height: 1px; background: var(--muted); opacity: 0.6; }
+  h1 {
+    font-size: clamp(3rem, 1.6rem + 6vw, 5.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+  .headline {
+    margin-top: 22px;
+    max-width: 30ch;
+    font-size: clamp(1.3rem, 1.05rem + 1vw, 1.75rem);
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+  }
+  .status {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 6px 12px;
+    margin-top: 28px;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 18%, transparent);
+    flex: none;
+  }
+  .where { color: var(--text); grid-column: 2; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+</style>

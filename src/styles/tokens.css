@@ -1,0 +1,64 @@
+/* Design tokens (PRD 5.1). Night topo is the default; Paper map follows the
+   visitor's light-mode preference or the toggle. Contrast ratios verified in the PRD. */
+:root {
+  color-scheme: dark;
+  --bg: #0B1220;
+  --bg-rgb: 11 18 32;
+  --surface: #111A2B;
+  --text: #E6E8EB;
+  --muted: #8A96A8;
+  --contour: #243247;
+  --border: #1F2B40;
+  --accent: #FF6B35;
+  --on-accent: #0B1220;
+  --data: #7FD1E0;
+  --success: #4ADE80;
+  --bg-contour-opacity: 0.55;
+
+  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --maxw: 1200px;
+  --gutter: 16px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --radius: 14px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #F4F1EA;
+  --bg-rgb: 244 241 234;
+  --surface: #EAE5DA;
+  --text: #1B1F24;
+  --muted: #545D69;
+  --contour: #CFC6B4;
+  --border: #D6CEBF;
+  --accent: #AD3608;
+  --on-accent: #F4F1EA;
+  --data: #0B6178;
+  --success: #166534;
+  --bg-contour-opacity: 0.4;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    color-scheme: light;
+    --bg: #F4F1EA;
+    --bg-rgb: 244 241 234;
+    --surface: #EAE5DA;
+    --text: #1B1F24;
+    --muted: #545D69;
+    --contour: #CFC6B4;
+    --border: #D6CEBF;
+    --accent: #AD3608;
+    --on-accent: #F4F1EA;
+    --data: #0B6178;
+    --success: #166534;
+    --bg-contour-opacity: 0.4;
+  }
+}
+
+@media (min-width: 768px) {
+  :root { --gutter: 24px; }
+}

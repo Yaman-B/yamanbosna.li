@@ -1,0 +1,365 @@
+---
+// 2D loss landscape (Phase 1 hero). Contours and the three reference paths are
+// rendered at build time, so the figure is complete without JavaScript and under
+// reduced motion. The client script adds the live optimizer.
+import { contourLines } from '../../lib/contours';
+import {
+  DEFAULT_START, DOMAIN, GLOBAL_MIN, LOCAL_A, LOCAL_B, OPT_LABELS, loss, pathD, run, toPlot,
+  type OptName,
+} from '../../lib/surface';
+
+const E = DOMAIN + 0.35; // sample past the edges so ring closures fall outside the view
+const thresholds = Array.from({ length: 18 }, (_, k) => 0.25 * (k + 1));
+const lines = contourLines({
+  fn: loss, x0: -E, x1: E, y0: -E, y1: E, nx: 150, ny: 150, thresholds,
+  project: (x, y) => toPlot([x, y]),
+});
+
+const opts: OptName[] = ['sgd', 'momentum', 'adam'];
+const staticPaths = opts.map((o) => ({ o, d: pathD(run(o, DEFAULT_START).path) }));
+
+const [gx, gy] = toPlot(GLOBAL_MIN);
+const [ax, ay] = toPlot(LOCAL_A);
+const [bx, by] = toPlot(LOCAL_B);
+const [sx, sy] = toPlot(DEFAULT_START);
+---
+<figure class="plot" data-plot-root>
+  <div class="frame">
+    <svg viewBox="0 0 400 400" data-plot role="img" aria-labelledby="plot-title plot-desc">
+      <title id="plot-title">Loss landscape</title>
+      <desc id="plot-desc">
+        A contour map of a loss surface with one global minimum and two local minima. From the
+        marked start, plain SGD gets stuck in a local minimum, while Momentum and Adam reach the
+        global minimum.
+      </desc>
+      <g class="contours" fill="none">
+        {lines.map((l) => (
+          <path d={l.d} class={Number.isInteger(l.value) ? 'index' : undefined} />
+        ))}
+      </g>
+
+      <g class="static-paths" fill="none">
+        {staticPaths.map(({ o, d }) => <path d={d} class={`sp sp-${o}`} data-static={o} />)}
+      </g>
+
+      <g class="markers">
+        <circle class="m-global" cx={gx} cy={gy} r="5" />
+        <text x={gx + 14} y={gy - 14}>global min</text>
+        <circle class="m-local" cx={ax} cy={ay} r="4" />
+        <text x={ax - 12} y={ay + 4} text-anchor="end">local min</text>
+        <circle class="m-local" cx={bx} cy={by} r="4" />
+        <text x={bx} y={by + 20} text-anchor="middle">local min</text>
+      </g>
+
+      <g class="start" data-start transform={`translate(${sx} ${sy})`}>
+        <circle r="5" />
+        <text x="10" y="-8">start</text>
+      </g>
+
+      <g data-live class="live"></g>
+    </svg>
+  </div>
+
+  <figcaption>
+    <div class="legend" data-legend>
+      <span><i class="k k-adam"></i>Adam</span>
+      <span><i class="k k-momentum"></i>Momentum</span>
+      <span><i class="k k-sgd"></i>SGD (stuck)</span>
+    </div>
+
+    <div class="controls" data-controls hidden>
+      <div class="seg" role="group" aria-label="Optimizer">
+        {opts.map((o) => (
+          <button type="button" data-opt={o} aria-pressed={o === 'adam' ? 'true' : 'false'}>{OPT_LABELS[o]}</button>
+        ))}
+      </div>
+      <button type="button" class="ctl" data-new aria-label="New random start">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v4h-4"/></svg>
+      </button>
+      <button type="button" class="ctl" data-pause aria-label="Pause animation">
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/></svg>
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>
+      </button>
+    </div>
+
+    <p class="readout mono" data-readout>start · loss {loss(...DEFAULT_START).toFixed(2)}</p>
+    <p class="hint" data-hint hidden>Click the map to drop a new starting point.</p>
+  </figcaption>
+</figure>
+
+<style>
+  .plot { margin: 0; width: 100%; max-width: 480px; justify-self: center; }
+  .frame {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: rgb(var(--bg-rgb) / 0.72);
+    overflow: hidden;
+    aspect-ratio: 1;
+  }
+  svg { width: 100%; height: 100%; cursor: crosshair; touch-action: manipulation; }
+  .contours path { stroke: var(--muted); stroke-width: 0.8; opacity: 0.32; }
+  .contours path.index { stroke-width: 1.3; opacity: 0.6; }
+
+  .sp { stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .sp-adam { stroke: var(--accent); }
+  .sp-momentum { stroke: var(--data); }
+  .sp-sgd { stroke: var(--muted); stroke-dasharray: 5 4; }
+
+  .markers text, .start text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+  .m-global { fill: none; stroke: var(--success); stroke-width: 2; }
+  .m-local { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+  .start circle { fill: var(--bg); stroke: var(--text); stroke-width: 1.5; }
+  .start text { fill: var(--text); }
+
+  :global(.live .trail) {
+    fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    transition: opacity 2s linear, stroke 600ms linear;
+  }
+  :global(.live .trail.fading) { opacity: 0; stroke: var(--muted); }
+  :global(.live .point) { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
+
+  figcaption { margin-top: 14px; display: grid; gap: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.85rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .k { width: 22px; height: 0; border-top: 2px solid; display: inline-block; }
+  .k-adam { border-color: var(--accent); }
+  .k-momentum { border-color: var(--data); }
+  .k-sgd { border-color: var(--muted); border-top-style: dashed; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .controls[hidden] { display: none; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 3px; }
+  .seg button {
+    min-height: 38px;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .seg button[aria-pressed='true'] { background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent); }
+  .seg button:hover { color: var(--text); }
+  .ctl {
+    display: inline-grid; place-items: center;
+    width: 44px; height: 44px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: transparent; color: var(--text); cursor: pointer;
+  }
+  .ctl:hover { border-color: var(--accent); }
+  .ctl svg { width: 18px; height: 18px; }
+  .ctl .i-play { display: none; }
+  .ctl[data-paused='true'] .i-play { display: block; }
+  .ctl[data-paused='true'] .i-pause { display: none; }
+  .readout { color: var(--muted); min-height: 1.4em; }
+  .hint { color: var(--muted); font-size: 0.85rem; }
+
+  /* Live mode: hide the reference paths; the controls act as the legend */
+  .plot.animated .static-paths, .plot.animated .legend { display: none; }
+</style>
+
+<script>
+  import {
+    DEFAULT_START, DOMAIN, GLOBAL_MIN, OPT_LABELS, fromPlot, loss, pathD, run, toPlot,
+    type OptName, type Run, type Vec,
+  } from '../../lib/surface';
+
+  const STEPS_PER_SEC = 30;
+  const AUTO_DELAY = 3; // seconds after settling before an auto restart
+  const NS = 'http://www.w3.org/2000/svg';
+
+  const rootEl = document.querySelector<HTMLElement>('[data-plot-root]');
+  if (rootEl) init(rootEl);
+
+  function init(root: HTMLElement) {
+    const svg = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const live = root.querySelector<SVGGElement>('[data-live]')!;
+    const startMark = root.querySelector<SVGGElement>('[data-start]')!;
+    const controls = root.querySelector<HTMLElement>('[data-controls]')!;
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const hint = root.querySelector<HTMLElement>('[data-hint]')!;
+    const pauseBtn = root.querySelector<HTMLButtonElement>('[data-pause]')!;
+    const newBtn = root.querySelector<HTMLButtonElement>('[data-new]')!;
+    const optBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-opt]')];
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    let opt: OptName = 'adam';
+    let start: Vec = DEFAULT_START;
+    let current: Run | null = null;
+    let trail: SVGPathElement | null = null;
+    let point: SVGCircleElement | null = null;
+    let elapsed = 0, lastTs: number | null = null, doneAt: number | null = null;
+    let playing = true, auto = true, visible = true;
+    let raf: number | null = null;
+
+    hint.hidden = false;
+    controls.hidden = false;
+
+    const moveStart = (p: Vec) => {
+      const [x, y] = toPlot(p);
+      startMark.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+    };
+
+    const outcome = (p: Vec) =>
+      Math.hypot(p[0] - GLOBAL_MIN[0], p[1] - GLOBAL_MIN[1]) < 0.25 ? 'global min' : 'local min';
+
+    // ---------- Reduced motion: static comparison of all three optimizers ----------
+    function renderStatic() {
+      root.classList.remove('animated');
+      optBtns.forEach((b) => (b.parentElement!.hidden = true));
+      pauseBtn.hidden = true;
+      live.replaceChildren();
+      for (const o of ['sgd', 'momentum', 'adam'] as OptName[]) {
+        const r = run(o, start);
+        root.querySelector(`[data-static="${o}"]`)!.setAttribute('d', pathD(r.path));
+      }
+      moveStart(start);
+      readout.textContent = `start · loss ${loss(...start).toFixed(2)}`;
+      hint.textContent = 'Click the map, or use the button, to compare from a new start.';
+    }
+
+    // ---------- Animated mode ----------
+    function startRun(s: Vec, o: OptName) {
+      start = s;
+      opt = o;
+      if (trail) {
+        const old = trail;
+        old.classList.add('fading');
+        setTimeout(() => old.remove(), 2100);
+      }
+      current = run(o, s);
+      trail = document.createElementNS(NS, 'path');
+      trail.setAttribute('class', 'trail');
+      if (!point) {
+        point = document.createElementNS(NS, 'circle');
+        point.setAttribute('class', 'point');
+        point.setAttribute('r', '6');
+      }
+      live.append(trail, point);
+      moveStart(s);
+      elapsed = 0; lastTs = null; doneAt = null;
+      draw(0);
+      kick();
+    }
+
+    function draw(pos: number) {
+      if (!current || !trail || !point) return;
+      const i = Math.floor(pos);
+      const frac = pos - i;
+      const a = current.path[i];
+      const b = current.path[Math.min(i + 1, current.path.length - 1)];
+      const cur: Vec = [a[0] + (b[0] - a[0]) * frac, a[1] + (b[1] - a[1]) * frac];
+      trail.setAttribute('d', pathD([...current.path.slice(0, i + 1), cur]));
+      const [px, py] = toPlot(cur);
+      point.setAttribute('cx', px.toFixed(1));
+      point.setAttribute('cy', py.toFixed(1));
+      const settled = pos >= current.settledAt;
+      readout.textContent =
+        `step ${i} · loss ${Math.max(0, loss(...cur)).toFixed(3)} · ${OPT_LABELS[opt].toLowerCase()}` +
+        (settled ? ` · settled in ${outcome(cur)}` : '');
+    }
+
+    function frame(ts: number) {
+      raf = null;
+      if (!playing || !visible || document.hidden || !current) return;
+      if (lastTs !== null) elapsed += Math.min(0.1, (ts - lastTs) / 1000);
+      lastTs = ts;
+      const pos = Math.min(elapsed * STEPS_PER_SEC, current.settledAt);
+      draw(pos);
+      if (pos >= current.settledAt) {
+        if (doneAt === null) doneAt = elapsed;
+        if (!auto) return; // idle until the visitor acts
+        if (elapsed - doneAt > AUTO_DELAY) { startRun(randomStart(), opt); return; }
+      }
+      raf = requestAnimationFrame(frame);
+    }
+
+    function kick() {
+      if (raf === null && playing && visible && !document.hidden) {
+        lastTs = null;
+        raf = requestAnimationFrame(frame);
+      }
+    }
+
+    function randomStart(): Vec {
+      const t = Math.random() * Math.PI * 2;
+      const r = 3.2 + Math.random() * 0.5;
+      const c = DOMAIN - 0.3;
+      return [Math.max(-c, Math.min(c, r * Math.cos(t))), Math.max(-c, Math.min(c, r * Math.sin(t)))];
+    }
+
+    function setPlaying(p: boolean) {
+      playing = p;
+      pauseBtn.dataset.paused = String(!p);
+      pauseBtn.setAttribute('aria-label', p ? 'Pause animation' : 'Play animation');
+      if (p) kick();
+    }
+
+    function setOpt(o: OptName) {
+      optBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.opt === o)));
+      opt = o;
+    }
+
+    function mode() {
+      if (reduce.matches) {
+        if (raf !== null) cancelAnimationFrame(raf);
+        raf = null;
+        renderStatic();
+      } else {
+        root.classList.add('animated');
+        optBtns.forEach((b) => (b.parentElement!.hidden = false));
+        pauseBtn.hidden = false;
+        hint.textContent = 'Click the map to drop a new starting point.';
+        startRun(start, opt);
+      }
+    }
+
+    // ---------- Events ----------
+    svg.addEventListener('click', (e) => {
+      const m = svg.getScreenCTM();
+      if (!m) return;
+      const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+      const c = DOMAIN - 0.1;
+      const [x, y] = fromPlot([pt.x, pt.y]);
+      const s: Vec = [Math.max(-c, Math.min(c, x)), Math.max(-c, Math.min(c, y))];
+      auto = false;
+      if (reduce.matches) { start = s; renderStatic(); return; }
+      setPlaying(true);
+      startRun(s, opt);
+    });
+
+    optBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        auto = false;
+        setOpt(b.dataset.opt as OptName);
+        setPlaying(true);
+        startRun(start, opt); // replay from the same start to compare paths
+      }),
+    );
+
+    newBtn.addEventListener('click', () => {
+      auto = false;
+      if (reduce.matches) { start = randomStart(); renderStatic(); return; }
+      setPlaying(true);
+      startRun(randomStart(), opt);
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      auto = false;
+      setPlaying(!playing);
+    });
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => {
+        visible = entries[0].isIntersecting;
+        if (visible) kick();
+      }).observe(root);
+    }
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) kick(); });
+    reduce.addEventListener('change', mode);
+
+    mode();
+  }
+</script>

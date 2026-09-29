@@ -1,0 +1,78 @@
+---
+// Static figure: an 11-field intake becomes a year, one month expands into weeks,
+// one week into days, one day into a session. Each layer passes validation.
+interface Props { label: string }
+const { label } = Astro.props;
+
+const X0 = 64, W = 222, H = 14, GAP = 2;
+const rows = [
+  { name: 'year', y: 36, n: 12, hi: 3 },
+  { name: 'month', y: 78, n: 4, hi: 1 },
+  { name: 'week', y: 120, n: 7, hi: 2 },
+] as const;
+const segs = (n: number) => {
+  const w = (W - GAP * (n - 1)) / n;
+  return Array.from({ length: n }, (_, i) => ({ x: X0 + i * (w + GAP), w }));
+};
+const dayY = 162;
+const dayParts = [
+  { name: 'warm-up', f: 0.25 },
+  { name: 'main set', f: 0.5 },
+  { name: 'cool-down', f: 0.25 },
+];
+let cx = X0;
+const day = dayParts.map((p) => {
+  const w = (W - GAP * 2) * p.f;
+  const part = { ...p, x: cx, w };
+  cx += w + GAP;
+  return part;
+});
+const nextY = [78, 120, dayY];
+const checks = [36, 78, 120, dayY];
+---
+<svg class="figsvg" viewBox="0 0 320 200" role="img" aria-label={label}>
+  <text class="t-small" x="14" y="20">11-field intake → LLM → validated plan</text>
+  {rows.map((r, k) => {
+    const s = segs(r.n);
+    const h = s[r.hi];
+    const ny = nextY[k];
+    return (
+      <g>
+        <text class="t-row" x="14" y={r.y + 11}>{r.name}</text>
+        {s.map((g, i) => (
+          <rect x={g.x.toFixed(1)} y={r.y} width={g.w.toFixed(1)} height={H} rx="3" class={i === r.hi ? 'seg hi' : 'seg'} />
+        ))}
+        <path class="zoom" d={`M${h.x.toFixed(1)} ${r.y + H}L${X0} ${ny}L${X0 + W} ${ny}L${(h.x + h.w).toFixed(1)} ${r.y + H}Z`} />
+        <path class="edge draw" pathLength="1" d={`M${h.x.toFixed(1)} ${r.y + H + 1}L${X0} ${ny - 1}`} />
+        <path class="edge draw" pathLength="1" d={`M${(h.x + h.w).toFixed(1)} ${r.y + H + 1}L${X0 + W} ${ny - 1}`} />
+      </g>
+    );
+  })}
+  <text class="t-row" x="14" y={dayY + 11}>day</text>
+  {day.map((p) => (
+    <g>
+      <rect x={p.x.toFixed(1)} y={dayY} width={p.w.toFixed(1)} height={H} rx="3" class={p.name === 'main set' ? 'seg hi' : 'seg'} />
+      <text class={p.name === 'main set' ? 't-in on-hi' : 't-in'} x={(p.x + p.w / 2).toFixed(1)} y={dayY + 10} text-anchor="middle">{p.name}</text>
+    </g>
+  ))}
+  {checks.map((y) => (
+    <g class="pop" transform={`translate(302 ${y + 7})`}>
+      <circle r="6.5" class="chk-c" />
+      <path d="M-3 0.2 -0.9 2.3 3 -2" class="chk" />
+    </g>
+  ))}
+</svg>
+
+<style>
+  .seg { fill: var(--data); opacity: 0.24; }
+  .seg.hi { fill: var(--accent); opacity: 1; }
+  .zoom { fill: var(--accent); opacity: 0.07; }
+  .edge { fill: none; stroke: var(--muted); stroke-width: 1; opacity: 0.8; }
+  .t-small, .t-row, .t-in { font-family: var(--font-mono); fill: var(--muted); }
+  .t-small { font-size: 9.5px; }
+  .t-row { font-size: 10px; }
+  .t-in { font-size: 8.5px; fill: var(--text); }
+  .t-in.on-hi { fill: var(--on-accent); font-weight: 500; }
+  .chk-c { fill: none; stroke: var(--success); stroke-width: 1.4; }
+  .chk { fill: none; stroke: var(--success); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+</style>

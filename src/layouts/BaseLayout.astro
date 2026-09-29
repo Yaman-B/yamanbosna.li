@@ -1,0 +1,102 @@
+---
+import '@fontsource-variable/fraunces/wght.css';
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import frauncesLatin from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  path?: string;
+  noindex?: boolean;
+}
+const { title = site.title, description = site.description, path = '/', noindex = false } = Astro.props;
+const canonical = new URL(path, site.url).href;
+const ogImage = new URL('/og-image.png', site.url).href;
+
+const personLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  url: site.url,
+  email: `mailto:${site.email}`,
+  jobTitle: 'Data Scientist',
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Tufts University' },
+  knowsLanguage: ['Turkish', 'English', 'Spanish'],
+  sameAs: [site.links.linkedin, site.links.github, site.links.kaggle],
+};
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="author" content={site.name} />
+    <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F1EA" media="(prefers-color-scheme: light)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Yaman Bosnali, data scientist, over a contour map" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={frauncesLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
+
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') d.dataset.theme = t;
+        } catch (e) {}
+      })();
+    </script>
+    <script type="application/ld+json" set:html={JSON.stringify(personLd)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="bg-contours" aria-hidden="true" style="--contours-url: url(/contours.svg)"></div>
+    <slot />
+    <script>
+      // One-time draw-in for static figures (PRD 7.4)
+      const figs = document.querySelectorAll('.fig');
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('is-visible');
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { threshold: 0.4 },
+        );
+        figs.forEach((f) => io.observe(f));
+      } else {
+        figs.forEach((f) => f.classList.add('is-visible'));
+      }
+    </script>
+  </body>
+</html>

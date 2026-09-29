@@ -1,0 +1,45 @@
+---
+import SectionHeader from '../global/SectionHeader.astro';
+import { sections, site } from '../../data/site';
+const s = sections.find((x) => x.id === 'about')!;
+---
+<section class="section" id="about" aria-labelledby="about-title">
+  <div class="container">
+    <SectionHeader n={s.n} title={s.title} loss={s.loss} id="about-title" />
+    <div class="grid">
+      <p class="bio">{site.bio}</p>
+      <dl class="facts">
+        {site.facts.map((f) => (
+          <div>
+            <dt class="mono">{f.label}</dt>
+            <dd>{f.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .grid { display: grid; gap: 40px; }
+  @media (min-width: 1024px) { .grid { grid-template-columns: 7fr 5fr; gap: 64px; align-items: start; } }
+  .bio {
+    font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.45rem);
+    line-height: 1.55;
+    letter-spacing: -0.005em;
+    max-width: 38em;
+  }
+  .facts {
+    margin: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: rgb(var(--bg-rgb) / 0.7);
+  }
+  .facts div { display: grid; grid-template-columns: 7.5rem 1fr; gap: 12px; padding: 14px 20px; }
+  .facts div + div { border-top: 1px solid var(--border); }
+  dt { color: var(--muted); padding-top: 2px; }
+  dd { margin: 0; font-size: 0.95rem; }
+  @media (max-width: 420px) {
+    .facts div { grid-template-columns: 1fr; gap: 2px; }
+  }
+</style>

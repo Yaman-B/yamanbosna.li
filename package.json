@@ -1,0 +1,32 @@
+{
+  "name": "yamanbosna-li",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "astro": "^7.3.5",
+    "d3-contour": "^4.0.2",
+    "d3-geo": "^3.1.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/d3-contour": "^3.0.6",
+    "@types/d3-geo": "^3.1.1",
+    "axe-core": "^4.13.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

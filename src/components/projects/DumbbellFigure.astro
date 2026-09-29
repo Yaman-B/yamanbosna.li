@@ -1,0 +1,51 @@
+---
+// Static before/after chart with values from the resume. Every value is labeled
+// directly; "before" is a hollow gray ring, "after" a filled accent dot, so the
+// two never rely on color alone.
+interface Props { label: string }
+const { label } = Astro.props;
+
+const X0 = 18, X1 = 302;
+const x = (v: number) => X0 + v * (X1 - X0);
+const rows = [
+  { title: 'PR-AUC', sub: 'climatology baseline → LightGBM', y: 92, a: 0.32, b: 0.6, la: '0.32', lb: '0.60' },
+  { title: 'Explanation faithfulness', sub: 'ungrounded → grounded in SHAP', y: 170, a: 0.02, b: 0.98, la: '2%', lb: '98%' },
+];
+---
+<svg class="figsvg" viewBox="0 0 320 200" role="img" aria-label={label}>
+  <g class="legend">
+    <circle cx="23" cy="17" r="4" class="before" />
+    <text x="33" y="20.5">before</text>
+    <circle cx="89" cy="17" r="4.5" class="after" />
+    <text x="99" y="20.5">after</text>
+  </g>
+  {rows.map((r) => {
+    const xa = x(r.a), xb = x(r.b);
+    const edgeA = xa < 40 ? 'start' : 'middle';
+    const edgeB = xb > 280 ? 'end' : 'middle';
+    return (
+      <g>
+        <text class="title" x={X0} y={r.y - 38}>{r.title}</text>
+        <text class="sub" x={X0} y={r.y - 24}>{r.sub}</text>
+        <path class="track" d={`M${X0} ${r.y}H${X1}M${X0} ${r.y - 3}v6M${X1} ${r.y - 3}v6`} />
+        <path class="link draw" pathLength="1" d={`M${xa.toFixed(1)} ${r.y}H${xb.toFixed(1)}`} />
+        <circle class="before" cx={xa.toFixed(1)} cy={r.y} r="4.5" />
+        <circle class="after pop" cx={xb.toFixed(1)} cy={r.y} r="5.5" />
+        <text class="val muted-v" x={edgeA === 'start' ? X0 : xa.toFixed(1)} y={r.y + 18} text-anchor={edgeA}>{r.la}</text>
+        <text class="val pop" x={edgeB === 'end' ? X1 : xb.toFixed(1)} y={r.y + 18} text-anchor={edgeB}>{r.lb}</text>
+      </g>
+    );
+  })}
+</svg>
+
+<style>
+  .legend text { font-family: var(--font-mono); font-size: 9.5px; fill: var(--muted); }
+  .title { font-family: var(--font-body); font-size: 12px; font-weight: 600; fill: var(--text); }
+  .sub { font-family: var(--font-mono); font-size: 8.5px; fill: var(--muted); }
+  .track { fill: none; stroke: var(--muted); stroke-width: 1; opacity: 0.35; }
+  .link { fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+  .before { fill: var(--surface); stroke: var(--muted); stroke-width: 2; }
+  .after { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+  .val { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; fill: var(--text); }
+  .val.muted-v { fill: var(--muted); font-weight: 400; }
+</style>

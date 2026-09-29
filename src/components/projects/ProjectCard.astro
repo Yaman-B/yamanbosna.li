@@ -1,0 +1,98 @@
+---
+import type { Project } from '../../data/projects';
+import PlanLayersFigure from './PlanLayersFigure.astro';
+import DumbbellFigure from './DumbbellFigure.astro';
+import RoundTripFigure from './RoundTripFigure.astro';
+
+interface Props { project: Project }
+const { project: p } = Astro.props;
+const Figure = { 'plan-layers': PlanLayersFigure, dumbbell: DumbbellFigure, 'round-trip': RoundTripFigure }[p.figure];
+const headingId = `proj-${p.slug}`;
+---
+<article class="card" aria-labelledby={headingId}>
+  <div class="fig">
+    <Figure label={p.figureLabel} />
+  </div>
+  <div class="body">
+    <p class="context mono">{p.context}</p>
+    <h3 id={headingId}>{p.title}</h3>
+    {p.badge && <p class="badge mono">{p.badge}</p>}
+    <p class="summary">{p.summary}</p>
+    <dl class="metrics">
+      {p.metrics.map((m) => (
+        <div>
+          <dt>{m.label}</dt>
+          <dd class="mono">{m.value}</dd>
+        </div>
+      ))}
+    </dl>
+    <ul class="tags" aria-label="Stack">
+      {p.tags.map((t) => <li>{t}</li>)}
+    </ul>
+    <div class="links">
+      {p.demo && (
+        <a class="btn btn-primary" href={p.demo} target="_blank" rel="noopener">
+          Live demo<span class="visually-hidden"> of {p.title} (opens in a new tab)</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </a>
+      )}
+      {p.github && (
+        <a class="btn" href={p.github} target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+          GitHub<span class="visually-hidden"> repository for {p.title} (opens in a new tab)</span>
+        </a>
+      )}
+    </div>
+  </div>
+</article>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+    transition: transform 200ms var(--ease), border-color 200ms var(--ease);
+  }
+  .card:hover, .card:focus-within { border-color: var(--accent); }
+  @media (prefers-reduced-motion: no-preference) {
+    .card:hover, .card:focus-within { transform: translateY(-2px); }
+  }
+  .fig {
+    aspect-ratio: 16 / 10;
+    padding: 12px 12px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .fig :global(svg) { width: 100%; height: 100%; }
+  .body { display: flex; flex-direction: column; gap: 14px; padding: 22px 22px 24px; flex: 1; }
+  .context { color: var(--muted); }
+  h3 { font-family: var(--font-display); font-size: 1.5rem; letter-spacing: -0.015em; margin-top: -6px; }
+  .badge {
+    align-self: flex-start;
+    color: var(--success);
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    margin-top: -4px;
+  }
+  .summary { color: var(--text); font-size: 0.98rem; }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 1px;
+    margin: 4px 0 0;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .metrics div { background: var(--surface); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .metrics dd { order: -1; }
+  dd { margin: 0; font-size: 0.95rem; font-weight: 500; color: var(--text); white-space: nowrap; }
+  dt { font-size: 0.78rem; color: var(--muted); line-height: 1.3; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 6px; }
+  .links .btn { min-height: 42px; padding: 8px 16px; font-size: 0.9rem; }
+</style>

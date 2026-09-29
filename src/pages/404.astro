@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/global/Nav.astro';
+import Footer from '../components/global/Footer.astro';
+import { contourLines } from '../lib/contours';
+import { DOMAIN, createOptimizer, loss, pathD, toPlot, type Vec } from '../lib/surface';
+
+const E = DOMAIN + 0.35;
+const lines = contourLines({
+  fn: loss, x0: -E, x1: E, y0: -E, y1: E, nx: 110, ny: 110,
+  thresholds: Array.from({ length: 12 }, (_, k) => 0.35 * (k + 1)),
+  project: (x, y) => toPlot([x, y]),
+});
+
+// A real divergence: plain SGD with learning rate 4 leaves the map in four steps.
+const step = createOptimizer('sgd', 4);
+let p: Vec = [0.6, 1.2];
+const pts: Vec[] = [p];
+for (let i = 0; i < 10; i++) {
+  p = step(p).next;
+  pts.push(p);
+  if (Math.abs(p[0]) > DOMAIN + 0.5 || Math.abs(p[1]) > DOMAIN + 0.5) break;
+}
+const d = pathD(pts);
+const [sx, sy] = toPlot(pts[0]);
+---
+<BaseLayout title="Page not found · Yaman Bosnali" path="/404" noindex>
+  <Nav home={false} />
+  <main id="main" tabindex="-1" class="container nf">
+    <div class="copy">
+      <p class="mono muted">404</p>
+      <h1 class="mono">loss: NaN</h1>
+      <p class="msg">This page diverged. The learning rate was probably too high.</p>
+      <a class="btn btn-primary" href="/">Reset to home</a>
+    </div>
+    <figure class="fig-nf">
+      <svg viewBox="0 0 400 400" role="img" aria-label="An optimizer with too high a learning rate bounces across a contour map and flies off the edge.">
+        <g fill="none" class="c">{lines.map((l) => <path d={l.d} />)}</g>
+        <path d={d} class="trail" pathLength="1" />
+        <circle cx={sx} cy={sy} r="5" class="st" />
+      </svg>
+      <figcaption class="mono muted">sgd · lr 4.0 · step 4 · loss ∞</figcaption>
+    </figure>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .nf {
+    min-height: calc(100svh - 90px);
+    display: grid;
+    align-items: center;
+    gap: 40px;
+    padding-top: 110px;
+    padding-bottom: 64px;
+  }
+  @media (min-width: 900px) { .nf { grid-template-columns: 1fr 1fr; gap: 64px; } }
+  h1 { font-size: clamp(2.6rem, 1.8rem + 4vw, 4.5rem); letter-spacing: -0.03em; font-weight: 500; margin-top: 8px; }
+  .msg { font-size: 1.2rem; margin: 18px 0 28px; max-width: 32ch; }
+  .fig-nf { margin: 0; width: 100%; max-width: 420px; justify-self: center; }
+  svg { border: 1px solid var(--border); border-radius: var(--radius); background: rgb(var(--bg-rgb) / 0.72); overflow: hidden; }
+  .c path { stroke: var(--muted); stroke-width: 0.8; opacity: 0.3; }
+  .trail { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-dasharray: 1; }
+  .st { fill: var(--bg); stroke: var(--text); stroke-width: 1.5; }
+  figcaption { margin-top: 12px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .trail { animation: diverge 1.4s var(--ease) 300ms both; }
+  }
+  @keyframes diverge { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+</style>

@@ -1,0 +1,26 @@
+---
+import { site } from '../../data/site';
+const year = new Date().getFullYear();
+---
+<footer class="footer">
+  <div class="container inner">
+    <p>© {year} {site.name}</p>
+    <ul>
+      <li><a href={site.links.github} rel="me noopener" target="_blank">GitHub</a></li>
+      <li><a href={site.links.linkedin} rel="me noopener" target="_blank">LinkedIn</a></li>
+      <li><a href={site.links.kaggle} rel="me noopener" target="_blank">Kaggle</a></li>
+      <li><a href={`mailto:${site.email}`}>Email</a></li>
+    </ul>
+    <p class="mono built">Built with Astro and D3</p>
+  </div>
+</footer>
+
+<style>
+  .footer { border-top: 1px solid var(--border); padding-block: 28px 36px; color: var(--muted); font-size: 0.9rem; }
+  .inner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; }
+  ul { display: flex; flex-wrap: wrap; gap: 4px 20px; list-style: none; margin: 0; padding: 0; }
+  a { color: var(--muted); text-decoration: none; display: inline-block; padding: 10px 0; }
+  a:hover { color: var(--text); text-decoration: underline; }
+  .built { margin-left: auto; }
+  @media (max-width: 640px) { .built { margin-left: 0; width: 100%; } }
+</style>
